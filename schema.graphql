@@ -1,7 +1,13 @@
 type BlockEvent @entity {
   id: ID!
+  account: String!
   number: BigInt
   hash: Bytes
   timestampNanosec: BigInt
   gasPrice: BigInt
+}
+
+type BlockAction @entity {
+  id: ID!
+  methodName: String!
 }

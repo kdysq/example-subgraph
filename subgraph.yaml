@@ -8,12 +8,16 @@ dataSources:
     name: blocks
     network: near-mainnet
     source:
-      startBlock: 10662188
+      account: ref-finance.near
+      startBlock: 32010735
     mapping:
       apiVersion: 0.0.5
       language: wasm/assemblyscript
       file: ./src/mapping.ts
       entities:
         - BlockEvent
+        - BlockAction
       blockHandlers:
         - handler: handleBlock
+      receiptHandlers:
+        - handler: handleReceipt
