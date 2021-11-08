@@ -1,5 +1,5 @@
-import { near, BigInt, Bytes, log } from "@graphprotocol/graph-ts";
-import { BlockAction, BlockEvent } from "../generated/schema";
+import { near, BigInt, Bytes, log, json } from "@graphprotocol/graph-ts";
+import { BlockAction, BlockEvent, WithdrawAction } from "../generated/schema";
 
 export function handleBlock(block: near.Block): void {
   const header = block.header;
@@ -29,8 +29,18 @@ function handleAction(
     log.info("Early return: {}", ["Not a function call"]);
     return;
   }
+  const call = action.toFunctionCall();
 
   const event = new BlockAction(blockHeader.hash.toHexString());
-  event.methodName = action.toFunctionCall().methodName;
+  event.methodName = call.methodName;
+
+  if (call.methodName == "withdraw") {
+    const act = new WithdrawAction(receipt.id.toHexString());
+    const args = json.fromBytes(action.toFunctionCall().args).toArray();
+    act.account = args[0].toString();
+    act.amount = args[1].toBigInt();
+    act.save();
+  }
+
   event.save();
 }

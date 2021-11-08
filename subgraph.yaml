@@ -17,6 +17,7 @@ dataSources:
       entities:
         - BlockEvent
         - BlockAction
+        - WithdrawAction
       blockHandlers:
         - handler: handleBlock
       receiptHandlers:

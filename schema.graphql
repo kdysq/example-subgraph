@@ -11,3 +11,9 @@ type BlockAction @entity {
   id: ID!
   methodName: String!
 }
+
+type WithdrawAction @entity {
+  id: ID!
+  account: String!
+  amount: BigInt!
+}
