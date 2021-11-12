@@ -1,4 +1,4 @@
-import { near, BigInt, Bytes, log, json } from "@graphprotocol/graph-ts";
+import { near, BigInt, Bytes, log, json, JSONValueKind, JSONValue } from "@graphprotocol/graph-ts";
 import { BlockAction, BlockEvent, WithdrawAction } from "../generated/schema";
 
 export function handleBlock(block: near.Block): void {
@@ -36,9 +36,9 @@ function handleAction(
 
   if (call.methodName == "withdraw") {
     const act = new WithdrawAction(receipt.id.toHexString());
-    const args = json.fromBytes(action.toFunctionCall().args).toArray();
-    act.account = args[0].toString();
-    act.amount = args[1].toBigInt();
+    const args = json.fromBytes(action.toFunctionCall().args).toObject();
+    act.accountId = args.get("token")!.toString();
+    act.amount = args.get("amount")!.toBigInt()
     act.save();
   }
 
