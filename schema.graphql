@@ -14,6 +14,11 @@ type BlockAction @entity {
 
 type WithdrawAction @entity {
   id: ID!
-  accountId: String!
+  account: String!
   amount: BigInt!
+}
+
+type UserWithdraw @entity {
+  id: ID!
+  accumulated: BigInt!
 }

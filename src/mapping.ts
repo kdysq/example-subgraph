@@ -1,5 +1,18 @@
-import { near, BigInt, Bytes, log, json, JSONValueKind, JSONValue } from "@graphprotocol/graph-ts";
-import { BlockAction, BlockEvent, WithdrawAction } from "../generated/schema";
+import {
+  near,
+  BigInt,
+  log,
+  json,
+  crypto,
+  ByteArray,
+  store,
+} from "@graphprotocol/graph-ts";
+import {
+  BlockAction,
+  BlockEvent,
+  UserWithdraw,
+  WithdrawAction,
+} from "../generated/schema";
 
 export function handleBlock(block: near.Block): void {
   const header = block.header;
@@ -19,13 +32,16 @@ export function handleReceipt(receipt: near.ReceiptWithOutcome): void {
   }
 }
 
+function withdrawKey(account: string) {
+  return "withdraw." + account;
+}
+
 function handleAction(
   action: near.ActionValue,
   receipt: near.ActionReceipt,
   blockHeader: near.BlockHeader
 ): void {
   if (action.kind != near.ActionKind.FUNCTION_CALL) {
-    // FIXME: log not work on dashboard web-ui
     log.info("Early return: {}", ["Not a function call"]);
     return;
   }
@@ -37,9 +53,20 @@ function handleAction(
   if (call.methodName == "withdraw") {
     const act = new WithdrawAction(receipt.id.toHexString());
     const args = json.fromBytes(action.toFunctionCall().args).toObject();
-    act.accountId = args.get("token")!.toString();
-    act.amount = args.get("amount")!.toBigInt()
+    act.account = args.get("token")!.toString();
+    act.amount = BigInt.fromString(args.get("amount")!.toString());
     act.save();
+
+    // test the store api
+    const key = crypto
+      .keccak256(ByteArray.fromUTF8(withdrawKey(act.account)))
+      .toHexString();
+    let acc = store.get("UserWithdraw", key) as UserWithdraw;
+    if (!acc) {
+      acc = new UserWithdraw(key);
+    }
+    acc.accumulated = acc.accumulated.plus(act.amount);
+    acc.save();
   }
 
   event.save();
