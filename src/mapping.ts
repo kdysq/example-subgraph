@@ -32,7 +32,7 @@ export function handleReceipt(receipt: near.ReceiptWithOutcome): void {
   }
 }
 
-function withdrawKey(account: string) {
+function withdrawKey(account: string): string {
   return "withdraw." + account;
 }
 
@@ -53,7 +53,7 @@ function handleAction(
   if (call.methodName == "withdraw") {
     const act = new WithdrawAction(receipt.id.toHexString());
     const args = json.fromBytes(action.toFunctionCall().args).toObject();
-    act.account = args.get("token")!.toString();
+    act.account = args.get("token_id")!.toString();
     act.amount = BigInt.fromString(args.get("amount")!.toString());
     act.save();
 
