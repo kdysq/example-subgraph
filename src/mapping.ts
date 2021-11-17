@@ -6,7 +6,6 @@ import {
   crypto,
   ByteArray,
   store,
-  Entity,
 } from "@graphprotocol/graph-ts";
 import {
   BlockAction,
@@ -62,19 +61,15 @@ function handleAction(
     const key = crypto
       .keccak256(ByteArray.fromUTF8(withdrawKey(act.account)))
       .toHexString();
-    let acc = getStore<UserWithdraw>("UserWithdraw", key);
-    if (!acc) {
-      acc = new UserWithdraw(key);
+    let record = store.get("UserWithdraw", key);
+    if (!record) {
+      record = new UserWithdraw(key);
     }
+
+    const acc = record as UserWithdraw;
     acc.accumulated = acc.accumulated.plus(act.amount);
     acc.save();
   }
 
   event.save();
-}
-
-function getStore<T extends Entity>(entity: string, id: string): T | null {
-  const en = store.get(entity, id);
-  if (!en) return en;
-  return en as T;
 }
