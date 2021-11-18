@@ -6,6 +6,7 @@ import {
   crypto,
   ByteArray,
   store,
+  Value,
 } from "@graphprotocol/graph-ts";
 import {
   BlockAction,
@@ -66,9 +67,9 @@ function handleAction(
       record = new UserWithdraw(key);
     }
 
-    const acc = record as UserWithdraw;
-    acc.accumulated = acc.accumulated.plus(act.amount);
-    acc.save();
+    const acc = record.get("accumulated")!.toBigInt();
+    record.set("accumulated", Value.fromBigInt(acc.plus(act.amount)));
+    store.set("UserWithdraw", key, record);
   }
 
   event.save();
