@@ -4,7 +4,10 @@
 
 [Near Explore](https://explorer.near.org/)，用于查看区块高度
 
-[near-receipts-example](https://github.com/graphprotocol/example-subgraph/tree/near-receipts-example)，官方的演示项目，演示了如何收集事件，但未演示如何解析参数，参数的解析可以参考 [mapping.ts#L55](/src/mapping.ts#L55)
+[near-receipts-example](https://github.com/graphprotocol/example-subgraph/tree/near-receipts-example)，官方的演示项目，演示了如何收集事件，但未演示如何解析参数，本项目增加的演示内容：
+
+- 参数的解析可以参考 [mapping.ts#L55](/src/mapping.ts#L55)
+- 内置 store 的使用 [mapping.ts#L55](/src/mapping.ts#L62)，内置 store 为简单的 key-value store
 
 ### 调试方式
 
