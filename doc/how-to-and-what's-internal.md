@@ -42,7 +42,7 @@ git clone https://github.com/graphprotocol/example-subgraph.git
 
 运行 `yarn` 安装依赖
 
-### subgraph.yaml
+## subgraph.yaml
 
 我们的 Subgraph 将以托管的方式运行，所以需要 `subgraph.yaml` 对 Subgraph 的规格进行描述和说明，方便 TheGraph 帮我们运行服务
 
@@ -284,6 +284,7 @@ Subgraph 部署后，需要经过一段时间的索引，然后才能显示出�
     }
   }
   ```
+
 - 将上面查询语句中 `Qm...` 的部分替换为部署后的 subgraph ID，在 [Dashboard](https://thegraph.com/hosted-service/dashboard) 中对应的 Subgraph 详情页面可以找到
 - 点击查询按钮即可看到错误内容
 
