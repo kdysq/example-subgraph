@@ -229,6 +229,21 @@ export GRAPH_TOKEN=your_access_token && yarn deploy:subgraph
 
 > 替换 your_access_token 为实际的令牌内容
 
+## 查询
+
+Subgraph 部署后，需要经过一段时间的索引，然后才能显示出查询结果，在此期间我们需要关注它是否正确
+
+索引操作简单说就是调用 `mapping.ts` 内的方法，因此如果出错也大致在这个文件涉及的范围内
+
+如果下面出现 `indexing_error` 则需要使用下面提到的调试方法，找到问题并重新部署
+
+查询的方式就是在 GraphQL 客户端中输入查询语句即可，有两个途径：
+
+- 直接在 [Dashboard](https://thegraph.com/hosted-service/dashboard) 中找到对应的 Subgraph 的 Playground 中传入查询内容
+- 根据 [querying-from-your-app](https://thegraph.com/docs/developer/querying-from-your-app) 中的描述，通过编程的方式查询
+
+查询语句的语法可以参考 [graphql-api](https://thegraph.com/docs/developer/graphql-api#queries)
+
 ## 调试
 
 尚未发现很好的本地调试方法，需要将 Subgraph 部署后，查看它的运行日志。运行日志的查看也比较不直观
