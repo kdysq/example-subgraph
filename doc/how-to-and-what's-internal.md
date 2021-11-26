@@ -141,7 +141,7 @@ export function handleReceipt(receipt: near.ReceiptWithOutcome): void {}
 - 执行我们预定的转换逻辑
 - 将转换后的数据存储
 
-[handleBlock](/src/mapping.ts#L18) 的内容就是直观的数据转换，就不赘述了
+[handleBlock](/src/mapping.ts#L18) 的内容就是直观的数据转换，就不赘述了。不过注意需要显式地调用 `save` 方法来存储数据
 
 [handleReceipt](/src/mapping.ts#L29) 需要简单解释一下
 
