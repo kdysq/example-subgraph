@@ -1,4 +1,4 @@
-import { near, BigInt, log, json } from "@graphprotocol/graph-ts";
+import { near, BigInt, log, json, JSONValue } from "@graphprotocol/graph-ts";
 import {
   ActionAct,
   AddLiquidityAct,
@@ -52,64 +52,96 @@ function handleAction(
   event.methodName = call.methodName;
   event.save();
 
-  const fn = handleMap[call.methodName];
-  if (!fn) return;
+  if (call.methodName == "register_tokens") {
+    register_tokens(action, receipt);
+    return;
+  }
+  if (call.methodName == "unregister_tokens") {
+    unregister_tokens(action, receipt);
+    return;
+  }
+  if (call.methodName == "withdraw") {
+    withdraw(action, receipt);
+    return;
+  }
 
-  fn(action, receipt);
+  if (call.methodName == "add_simple_pool") {
+    add_simple_pool(action, receipt);
+    return;
+  }
+  if (call.methodName == "execute_actions") {
+    execute_actions(action, receipt);
+    return;
+  }
+  if (call.methodName == "swap") {
+    swap(action, receipt);
+    return;
+  }
+  if (call.methodName == "add_liquidity") {
+    add_liquidity(action, receipt);
+    return;
+  }
+  if (call.methodName == "remove_liquidity") {
+    remove_liquidity(action, receipt);
+    return;
+  }
+
+  if (call.methodName == "mft_register") {
+    mft_register(action, receipt);
+    return;
+  }
+  if (call.methodName == "mft_transfer") {
+    mft_transfer(action, receipt);
+    return;
+  }
+  if (call.methodName == "mft_transfer_call") {
+    mft_transfer_call(action, receipt);
+    return;
+  }
+
+  if (call.methodName == "storage_deposit") {
+    storage_deposit(action, receipt);
+    return;
+  }
+  if (call.methodName == "storage_withdraw") {
+    storage_withdraw(action, receipt);
+    return;
+  }
+  if (call.methodName == "storage_unregister") {
+    storage_unregister(action, receipt);
+    return;
+  }
 }
-
-type Handle = (action: near.ActionValue, receipt: near.ActionReceipt) => void;
-const handleMap: {
-  [k: string]: Handle;
-} = {
-  register_tokens,
-  unregister_tokens,
-  withdraw,
-
-  add_simple_pool,
-  execute_actions,
-  swap,
-  add_liquidity,
-  remove_liquidity,
-
-  mft_register,
-  mft_transfer,
-  mft_transfer_call,
-
-  storage_deposit,
-  storage_withdraw,
-  storage_unregister,
-};
 
 function register_tokens(
   action: near.ActionValue,
   receipt: near.ActionReceipt
-) {
+): void {
   const act = new RegisterTokensAct(receipt.id.toHexString());
   const args = json.fromBytes(action.toFunctionCall().args).toObject();
   act.sender = receipt.signerId;
   act.token_ids = args
     .get("token_ids")!
     .toArray()
-    .map((r) => r.toString());
+    .map<string>((r: JSONValue) => r.toString());
   act.save();
 }
 
 function unregister_tokens(
   action: near.ActionValue,
   receipt: near.ActionReceipt
-) {
+): void {
   const act = new UnregisterTokensAct(receipt.id.toHexString());
   const args = json.fromBytes(action.toFunctionCall().args).toObject();
   act.sender = receipt.signerId;
   act.token_ids = args
     .get("token_ids")!
     .toArray()
-    .map((r) => r.toString());
+    .map<string>((r: JSONValue) => r.toString());
   act.save();
 }
 
-function withdraw(action: near.ActionValue, receipt: near.ActionReceipt) {
+function withdraw(action: near.ActionValue, receipt: near.ActionReceipt): void {
   const act = new WithdrawAct(receipt.id.toHexString());
   const args = json.fromBytes(action.toFunctionCall().args).toObject();
   act.sender = receipt.signerId;
@@ -124,14 +156,14 @@ function withdraw(action: near.ActionValue, receipt: near.ActionReceipt) {
 function add_simple_pool(
   action: near.ActionValue,
   receipt: near.ActionReceipt
-) {
+): void {
   const act = new AddSimplePoolAct(receipt.id.toHexString());
   const args = json.fromBytes(action.toFunctionCall().args).toObject();
   act.sender = receipt.signerId;
   act.tokens = args
     .get("tokens")!
     .toArray()
-    .map((r) => r.toString());
+    .map<string>((r) => r.toString());
   act.fee = BigInt.fromString(args.get("fee")!.toString());
   act.save();
 }
@@ -139,52 +171,55 @@ function add_simple_pool(
 function execute_actions(
   action: near.ActionValue,
   receipt: near.ActionReceipt
-) {
+): void {
   const args = json.fromBytes(action.toFunctionCall().args).toObject();
-  const actions = args
-    .get("actions")!
-    .toArray()
-    .map((r, i) => {
-      const o = r.toObject();
-      const a = new ActionAct(receipt.id.toHexString() + i);
-      a.pool_id = BigInt.fromString(args.get("pool_id")!.toString());
-      a.token_in = args.get("token_in")!.toString();
-      if (o.isSet("amount_in")) {
-        a.amount_in = BigInt.fromString(args.get("amount_in")!.toString());
-      }
-      a.token_out = args.get("token_out")!.toString();
-      a.min_amount_out = BigInt.fromString(
-        args.get("min_amount_out")!.toString()
-      );
-      a.save();
-      return a.id;
-    });
+  const baseId = receipt.id.toHexString();
+  const acts = args.get("actions")!.toArray();
+  const actions = new Array<string>(acts.length);
+  for (let i = 0, len = acts.length; i < len; i++) {
+    const o = acts[i].toObject();
+    const a = new ActionAct(baseId + i.toString());
+    a.pool_id = BigInt.fromString(args.get("pool_id")!.toString());
+    a.token_in = args.get("token_in")!.toString();
+    if (o.isSet("amount_in")) {
+      a.amount_in = BigInt.fromString(args.get("amount_in")!.toString());
+    }
+    a.token_out = args.get("token_out")!.toString();
+    a.min_amount_out = BigInt.fromString(
+      args.get("min_amount_out")!.toString()
+    );
+    a.save();
+
+    actions[i] = a.id;
+  }
   const act = new ExecuteActsAct(receipt.id.toHexString());
   act.sender = receipt.signerId;
   act.actions = actions;
   act.save();
 }
 
-function swap(action: near.ActionValue, receipt: near.ActionReceipt) {
+function swap(action: near.ActionValue, receipt: near.ActionReceipt): void {
   const args = json.fromBytes(action.toFunctionCall().args).toObject();
-  const actions = args
-    .get("actions")!
-    .toArray()
-    .map((r, i) => {
-      const o = r.toObject();
-      const a = new ActionAct(receipt.id.toHexString() + i);
-      a.pool_id = BigInt.fromString(args.get("pool_id")!.toString());
-      a.token_in = args.get("token_in")!.toString();
-      if (o.isSet("amount_in")) {
-        a.amount_in = BigInt.fromString(args.get("amount_in")!.toString());
-      }
-      a.token_out = args.get("token_out")!.toString();
-      a.min_amount_out = BigInt.fromString(
-        args.get("min_amount_out")!.toString()
-      );
-      a.save();
-      return a.id;
-    });
+  const baseId = receipt.id.toHexString();
+  const acts = args.get("actions")!.toArray();
+  const actions = new Array<string>(acts.length);
+  for (let i = 0, len = acts.length; i < len; i++) {
+    const o = acts[i].toObject();
+    const a = new ActionAct(baseId + i.toString());
+    a.pool_id = BigInt.fromString(args.get("pool_id")!.toString());
+    a.token_in = args.get("token_in")!.toString();
+    if (o.isSet("amount_in")) {
+      a.amount_in = BigInt.fromString(args.get("amount_in")!.toString());
+    }
+    a.token_out = args.get("token_out")!.toString();
+    a.min_amount_out = BigInt.fromString(
+      args.get("min_amount_out")!.toString()
+    );
+    a.save();
+
+    actions[i] = a.id;
+  }
+
   const act = new SwapAct(receipt.id.toHexString());
   act.sender = receipt.signerId;
   act.actions = actions;
@@ -194,7 +229,10 @@ function swap(action: near.ActionValue, receipt: near.ActionReceipt) {
   act.save();
 }
 
-function add_liquidity(action: near.ActionValue, receipt: near.ActionReceipt) {
+function add_liquidity(
+  action: near.ActionValue,
+  receipt: near.ActionReceipt
+): void {
   const args = json.fromBytes(action.toFunctionCall().args).toObject();
   const act = new AddLiquidityAct(receipt.id.toHexString());
   act.sender = receipt.signerId;
@@ -202,14 +240,14 @@ function add_liquidity(action: near.ActionValue, receipt: near.ActionReceipt) {
   act.amounts = args
     .get("amounts")!
     .toArray()
-    .map((r) => {
+    .map<BigInt>((r) => {
       return BigInt.fromString(r.toString());
     });
   if (args.isSet("min_amounts")) {
     act.amounts = args
       .get("min_amounts")!
       .toArray()
-      .map((r) => {
+      .map<BigInt>((r) => {
         return BigInt.fromString(r.toString());
       });
   }
@@ -219,7 +257,7 @@ function add_liquidity(action: near.ActionValue, receipt: near.ActionReceipt) {
 function remove_liquidity(
   action: near.ActionValue,
   receipt: near.ActionReceipt
-) {
+): void {
   const args = json.fromBytes(action.toFunctionCall().args).toObject();
   const act = new RemoveLiquidityAct(receipt.id.toHexString());
   act.sender = receipt.signerId;
@@ -228,13 +266,16 @@ function remove_liquidity(
   act.min_amounts = args
     .get("min_amounts")!
     .toArray()
-    .map((r) => {
+    .map<BigInt>((r) => {
       return BigInt.fromString(r.toString());
     });
   act.save();
 }
 
-function mft_register(action: near.ActionValue, receipt: near.ActionReceipt) {
+function mft_register(
+  action: near.ActionValue,
+  receipt: near.ActionReceipt
+): void {
   const args = json.fromBytes(action.toFunctionCall().args).toObject();
   const act = new MftRegisterAct(receipt.id.toHexString());
   act.sender = receipt.signerId;
@@ -243,7 +284,10 @@ function mft_register(action: near.ActionValue, receipt: near.ActionReceipt) {
   act.save();
 }
 
-function mft_transfer(action: near.ActionValue, receipt: near.ActionReceipt) {
+function mft_transfer(
+  action: near.ActionValue,
+  receipt: near.ActionReceipt
+): void {
   const args = json.fromBytes(action.toFunctionCall().args).toObject();
   const act = new MftTransferAct(receipt.id.toHexString());
   act.sender = receipt.signerId;
@@ -254,7 +298,7 @@ function mft_transfer(action: near.ActionValue, receipt: near.ActionReceipt) {
     act.memo = args
       .get("memo")!
       .toArray()
-      .map((r) => {
+      .map<string>((r) => {
         return r.toString();
       });
   }
@@ -264,7 +308,7 @@ function mft_transfer(action: near.ActionValue, receipt: near.ActionReceipt) {
 function mft_transfer_call(
   action: near.ActionValue,
   receipt: near.ActionReceipt
-) {
+): void {
   const args = json.fromBytes(action.toFunctionCall().args).toObject();
   const act = new MftTransferCallAct(receipt.id.toHexString());
   act.sender = receipt.signerId;
@@ -275,7 +319,7 @@ function mft_transfer_call(
     act.memo = args
       .get("memo")!
       .toArray()
-      .map((r) => {
+      .map<string>((r) => {
         return r.toString();
       });
   }
@@ -286,7 +330,7 @@ function mft_transfer_call(
 function storage_deposit(
   action: near.ActionValue,
   receipt: near.ActionReceipt
-) {
+): void {
   const args = json.fromBytes(action.toFunctionCall().args).toObject();
   const act = new StorageDepositAct(receipt.id.toHexString());
   act.sender = receipt.signerId;
@@ -302,7 +346,7 @@ function storage_deposit(
 function storage_withdraw(
   action: near.ActionValue,
   receipt: near.ActionReceipt
-) {
+): void {
   const args = json.fromBytes(action.toFunctionCall().args).toObject();
   const act = new StorageWithdrawAct(receipt.id.toHexString());
   act.sender = receipt.signerId;
@@ -315,7 +359,7 @@ function storage_withdraw(
 function storage_unregister(
   action: near.ActionValue,
   receipt: near.ActionReceipt
-) {
+): void {
   const args = json.fromBytes(action.toFunctionCall().args).toObject();
   const act = new StorageUnregisterAct(receipt.id.toHexString());
   act.sender = receipt.signerId;
