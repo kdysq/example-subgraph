@@ -1,4 +1,11 @@
-import { near, BigInt, log, json, JSONValue } from "@graphprotocol/graph-ts";
+import {
+  near,
+  BigInt,
+  log,
+  json,
+  JSONValue,
+  TypedMap,
+} from "@graphprotocol/graph-ts";
 import {
   ActionAct,
   AddLiquidityAct,
@@ -113,6 +120,12 @@ function handleAction(
   }
 }
 
+function isset(obj: TypedMap<string, JSONValue>, key: string): boolean {
+  if (!obj.isSet(key)) return false;
+  if (obj.get(key)!.isNull()) return false;
+  return true;
+}
+
 function register_tokens(
   action: near.ActionValue,
   receipt: near.ActionReceipt
@@ -147,7 +160,7 @@ function withdraw(action: near.ActionValue, receipt: near.ActionReceipt): void {
   act.sender = receipt.signerId;
   act.token_id = args.get("token_id")!.toString();
   act.amount = BigInt.fromString(args.get("amount")!.toString());
-  if (args.isSet("unregister")) {
+  if (isset(args, "unregister")) {
     act.unregister = args.get("unregister")!.toBool();
   }
   act.save();
@@ -164,7 +177,7 @@ function add_simple_pool(
     .get("tokens")!
     .toArray()
     .map<string>((r) => r.toString());
-  act.fee = BigInt.fromString(args.get("fee")!.toString());
+  act.fee = BigInt.fromU64(args.get("fee")!.toU64());
   act.save();
 }
 
@@ -179,15 +192,13 @@ function execute_actions(
   for (let i = 0, len = acts.length; i < len; i++) {
     const o = acts[i].toObject();
     const a = new ActionAct(baseId + i.toString());
-    a.pool_id = BigInt.fromString(args.get("pool_id")!.toString());
-    a.token_in = args.get("token_in")!.toString();
-    if (o.isSet("amount_in")) {
-      a.amount_in = BigInt.fromString(args.get("amount_in")!.toString());
+    a.pool_id = BigInt.fromU64(o.get("pool_id")!.toU64());
+    a.token_in = o.get("token_in")!.toString();
+    if (isset(o, "amount_in")) {
+      a.amount_in = BigInt.fromString(o.get("amount_in")!.toString());
     }
-    a.token_out = args.get("token_out")!.toString();
-    a.min_amount_out = BigInt.fromString(
-      args.get("min_amount_out")!.toString()
-    );
+    a.token_out = o.get("token_out")!.toString();
+    a.min_amount_out = BigInt.fromString(o.get("min_amount_out")!.toString());
     a.save();
 
     actions[i] = a.id;
@@ -206,15 +217,15 @@ function swap(action: near.ActionValue, receipt: near.ActionReceipt): void {
   for (let i = 0, len = acts.length; i < len; i++) {
     const o = acts[i].toObject();
     const a = new ActionAct(baseId + i.toString());
-    a.pool_id = BigInt.fromString(args.get("pool_id")!.toString());
-    a.token_in = args.get("token_in")!.toString();
-    if (o.isSet("amount_in")) {
-      a.amount_in = BigInt.fromString(args.get("amount_in")!.toString());
+    if (isset(o, "pool_id")) {
+      a.pool_id = BigInt.fromU64(o.get("pool_id")!.toU64());
     }
-    a.token_out = args.get("token_out")!.toString();
-    a.min_amount_out = BigInt.fromString(
-      args.get("min_amount_out")!.toString()
-    );
+    a.token_in = o.get("token_in")!.toString();
+    if (isset(o, "amount_in")) {
+      a.amount_in = BigInt.fromString(o.get("amount_in")!.toString());
+    }
+    a.token_out = o.get("token_out")!.toString();
+    a.min_amount_out = BigInt.fromString(o.get("min_amount_out")!.toString());
     a.save();
 
     actions[i] = a.id;
@@ -223,7 +234,7 @@ function swap(action: near.ActionValue, receipt: near.ActionReceipt): void {
   const act = new SwapAct(receipt.id.toHexString());
   act.sender = receipt.signerId;
   act.actions = actions;
-  if (args.isSet("referral_id")) {
+  if (isset(args, "referral_id")) {
     act.referral_id = args.get("referral_id")!.toString();
   }
   act.save();
@@ -236,14 +247,14 @@ function add_liquidity(
   const args = json.fromBytes(action.toFunctionCall().args).toObject();
   const act = new AddLiquidityAct(receipt.id.toHexString());
   act.sender = receipt.signerId;
-  act.pool_id = BigInt.fromString(args.get("pool_id")!.toString());
+  act.pool_id = BigInt.fromU64(args.get("pool_id")!.toU64());
   act.amounts = args
     .get("amounts")!
     .toArray()
     .map<BigInt>((r) => {
       return BigInt.fromString(r.toString());
     });
-  if (args.isSet("min_amounts")) {
+  if (isset(args, "min_amounts")) {
     act.amounts = args
       .get("min_amounts")!
       .toArray()
@@ -261,7 +272,7 @@ function remove_liquidity(
   const args = json.fromBytes(action.toFunctionCall().args).toObject();
   const act = new RemoveLiquidityAct(receipt.id.toHexString());
   act.sender = receipt.signerId;
-  act.pool_id = BigInt.fromString(args.get("pool_id")!.toString());
+  act.pool_id = BigInt.fromU64(args.get("pool_id")!.toU64());
   act.shares = BigInt.fromString(args.get("shares")!.toString());
   act.min_amounts = args
     .get("min_amounts")!
@@ -294,13 +305,8 @@ function mft_transfer(
   act.token_id = args.get("token_id")!.toString();
   act.receiver_id = args.get("receiver_id")!.toString();
   act.amount = BigInt.fromString(args.get("amount")!.toString());
-  if (args.isSet("memo")) {
-    act.memo = args
-      .get("memo")!
-      .toArray()
-      .map<string>((r) => {
-        return r.toString();
-      });
+  if (isset(args, "memo")) {
+    act.memo = args.get("memo")!.toString();
   }
   act.save();
 }
@@ -315,13 +321,8 @@ function mft_transfer_call(
   act.token_id = args.get("token_id")!.toString();
   act.receiver_id = args.get("receiver_id")!.toString();
   act.amount = BigInt.fromString(args.get("amount")!.toString());
-  if (args.isSet("memo")) {
-    act.memo = args
-      .get("memo")!
-      .toArray()
-      .map<string>((r) => {
-        return r.toString();
-      });
+  if (isset(args, "memo")) {
+    act.memo = args.get("memo")!.toString();
   }
   act.msg = args.get("msg")!.toString();
   act.save();
@@ -334,10 +335,10 @@ function storage_deposit(
   const args = json.fromBytes(action.toFunctionCall().args).toObject();
   const act = new StorageDepositAct(receipt.id.toHexString());
   act.sender = receipt.signerId;
-  if (args.isSet("account_id")) {
+  if (isset(args, "account_id")) {
     act.account_id = args.get("account_id")!.toString();
   }
-  if (args.isSet("registration_only")) {
+  if (isset(args, "registration_only")) {
     act.registration_only = args.get("registration_only")!.toBool();
   }
   act.save();
@@ -350,7 +351,7 @@ function storage_withdraw(
   const args = json.fromBytes(action.toFunctionCall().args).toObject();
   const act = new StorageWithdrawAct(receipt.id.toHexString());
   act.sender = receipt.signerId;
-  if (args.isSet("amount")) {
+  if (isset(args, "amount")) {
     act.amount = BigInt.fromString(args.get("amount")!.toString());
   }
   act.save();
@@ -363,7 +364,7 @@ function storage_unregister(
   const args = json.fromBytes(action.toFunctionCall().args).toObject();
   const act = new StorageUnregisterAct(receipt.id.toHexString());
   act.sender = receipt.signerId;
-  if (args.isSet("force")) {
+  if (isset(args, "force")) {
     act.force = args.get("force")!.toBool();
   }
   act.save();

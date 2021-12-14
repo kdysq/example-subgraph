@@ -41,7 +41,7 @@ type AddSimplePoolAct @entity{
 
 type ActionAct @entity{
   id: ID!
-  pool_id: BigInt!
+  pool_id: BigInt
   token_in: String!
   amount_in: BigInt
   token_out: String!
@@ -86,7 +86,7 @@ type MftTransferAct @entity{
   token_id: String!
   receiver_id: String!
   amount: BigInt!
-  memo: [String!]
+  memo: String
 }
 type MftTransferCallAct @entity{
   id: ID!
@@ -94,7 +94,7 @@ type MftTransferCallAct @entity{
   token_id: String!
   receiver_id: String!
   amount: BigInt!
-  memo: [String!]
+  memo: String
   msg: String!
 }
 
