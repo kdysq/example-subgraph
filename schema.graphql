@@ -1,24 +1,116 @@
 type BlockEvent @entity {
   id: ID!
-  account: String!
+  sender: String!
   number: BigInt
   hash: Bytes
   timestampNanosec: BigInt
   gasPrice: BigInt
 }
 
-type BlockAction @entity {
+type BlockAct @entity {
   id: ID!
   methodName: String!
 }
 
-type WithdrawAction @entity {
+type RegisterTokensAct @entity{
   id: ID!
-  account: String!
-  amount: BigInt!
+  sender: String!
+  token_ids: [String!]!
 }
 
-type UserWithdraw @entity {
+type UnregisterTokensAct @entity{
   id: ID!
-  accumulated: BigInt!
+  sender: String!
+  token_ids: [String!]!
+}
+
+type WithdrawAct @entity {
+  id: ID!
+  sender: String!
+  token_id: String!
+  amount: BigInt!
+  unregister: Boolean
+}
+
+type AddSimplePoolAct @entity{
+  id: ID!
+  sender: String!
+  tokens: [String!]!
+  fee: BigInt!
+}
+
+type ActionAct @entity{
+  id: ID!
+  pool_id: BigInt!
+  token_in: String!
+  amount_in: BigInt
+  token_out: String!
+  min_amount_out: BigInt!
+}
+
+type ExecuteActsAct @entity{
+  id: ID!
+  sender: String!
+  actions: [ActionAct!]!
+}
+type SwapAct @entity{
+  id: ID!
+  sender: String!
+  actions: [ActionAct!]!
+  referral_id: String
+}
+type AddLiquidityAct @entity{
+  id: ID!
+  sender: String!
+  pool_id: BigInt!
+  amounts: [BigInt!]!
+  min_amounts: [BigInt!]
+}
+type RemoveLiquidityAct @entity{
+  id: ID!
+  sender: String!
+  pool_id: BigInt!
+  shares: BigInt!
+  min_amounts: [BigInt!]!
+}
+
+type MftRegisterAct @entity{
+  id: ID!
+  sender: String!
+  token_id: String!
+  account_id: String!
+}
+type MftTransferAct @entity{
+  id: ID!
+  sender: String!
+  token_id: String!
+  receiver_id: String!
+  amount: BigInt!
+  memo: [String!]
+}
+type MftTransferCallAct @entity{
+  id: ID!
+  sender: String!
+  token_id: String!
+  receiver_id: String!
+  amount: BigInt!
+  memo: [String!]
+  msg: String!
+}
+
+type StorageDepositAct @entity{
+  id: ID!
+  sender: String!
+  account_id: String
+  registration_only: Boolean
+}
+type StorageWithdrawAct @entity{
+  id: ID!
+  sender: String!
+  amount: BigInt
+}
+type StorageUnregisterAct @entity{
+  id: ID!
+  sender: String!
+  force: Boolean
 }
