@@ -1,4 +1,15 @@
 import React, { useState, useEffect } from "react";
+import Box from "@mui/material/Box";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import CardActions from "@mui/material/CardActions";
+import Typography from "@mui/material/Typography";
+import Button from "@mui/material/Button";
+import Snackbar from "@mui/material/Snackbar";
+import LinearProgress from "@mui/material/LinearProgress";
+
+import { JsonEditor, CodeEditor } from "./editor";
+
 import { ApolloClient, InMemoryCache, gql, DocumentNode } from "@apollo/client";
 
 import "./App.css";
@@ -12,52 +23,103 @@ const client = new ApolloClient({
 
 function App() {
   const [ql, setQl] = useState(`
-  query {
-    tokens {
-      id
-      tokenID
-      contentURI
-      metadataURI
-    }
+query {
+  blockEvents(first: 5) {
+    id
+    sender
+    number
+    hash
   }
+  blockActs(first: 5) {
+    id
+    methodName
+  }
+}
   `);
   const [query, setQuery] = useState<DocumentNode | null>(null);
-  const [res, setRes] = useState("");
+  const [res, setRes] = useState({});
+  const [resHash, setResHash] = useState(new Date().getTime());
+  const [loading, setLoading] = React.useState(false);
+  const [open, setOpen] = React.useState(false);
+  const [msg, setMsg] = React.useState("");
 
   useEffect(() => {
     if (!query) return;
 
+    setLoading(true);
     client
       .query({
         query,
       })
       .then((data) => {
-        setRes(JSON.stringify(data, null, 2));
+        setRes(data.data);
+        setResHash(new Date().getTime());
       })
       .catch((err) => {
+        setMsg(err.message);
+        setOpen(true);
         console.log("Error fetching data: ", err);
-      });
+      })
+      .finally(() => setLoading(false));
   }, [query]);
 
   return (
     <div className="App">
-      <textarea
-        cols={30}
-        rows={10}
-        value={ql}
-        onChange={(evt) => setQl(evt.target.value)}
-      ></textarea>
-      <button
-        onClick={() => {
-          console.log(11);
-          setQuery(gql(ql));
+      <Box
+        sx={{
+          display: "flex",
+          p: 1,
+          gap: 1,
+          justifyContent: "center",
         }}
       >
-        query
-      </button>
-      <textarea cols={30} rows={10} value={res}></textarea>
+        <Typography sx={{ fontSize: 30 }} gutterBottom>
+          Ref Subgraph
+        </Typography>
+      </Box>
+
+      <Box
+        sx={{
+          display: "flex",
+          p: 1,
+          gap: 1,
+          justifyContent: "center",
+        }}
+      >
+        <Card sx={{ width: "40%", p: 1 }} variant="outlined">
+          <CardContent>
+            {loading && <LinearProgress />}
+            <CodeEditor
+              value={ql}
+              onValueChange={(code: string) => setQl(code)}
+            />
+          </CardContent>
+          <CardActions sx={{ justifyContent: "center" }}>
+            <Button
+              size="small"
+              onClick={() => {
+                setQuery(gql(ql));
+              }}
+            >
+              Query
+            </Button>
+          </CardActions>
+        </Card>
+
+        <Card sx={{ width: "40%", p: 1 }} variant="outlined">
+          <CardContent>
+            <JsonEditor value={res} valueHash={resHash} />
+          </CardContent>
+        </Card>
+      </Box>
+
+      <Snackbar
+        open={open}
+        autoHideDuration={6000}
+        onClose={() => setOpen(false)}
+        message={msg}
+      />
     </div>
   );
 }
-
 export default App;
