@@ -3,25 +3,28 @@ type BlockEvent @entity {
   sender: String!
   number: BigInt
   hash: Bytes
-  timestampNanosec: BigInt
+  timestampNanosec: BigInt!
   gasPrice: BigInt
 }
 
 type BlockAct @entity {
   id: ID!
   methodName: String!
+  timestampNanosec: BigInt!
 }
 
-type RegisterTokensAct @entity{
+type RegisterTokensAct @entity {
   id: ID!
   sender: String!
   token_ids: [String!]!
+  timestampNanosec: BigInt!
 }
 
-type UnregisterTokensAct @entity{
+type UnregisterTokensAct @entity {
   id: ID!
   sender: String!
   token_ids: [String!]!
+  timestampNanosec: BigInt!
 }
 
 type WithdrawAct @entity {
@@ -30,65 +33,74 @@ type WithdrawAct @entity {
   token_id: String!
   amount: BigInt!
   unregister: Boolean
+  timestampNanosec: BigInt!
 }
 
-type AddSimplePoolAct @entity{
+type AddSimplePoolAct @entity {
   id: ID!
   sender: String!
   tokens: [String!]!
   fee: BigInt!
+  timestampNanosec: BigInt!
 }
 
-type ActionAct @entity{
+type ActionAct @entity {
   id: ID!
   pool_id: BigInt
   token_in: String!
   amount_in: BigInt
   token_out: String!
   min_amount_out: BigInt!
+  timestampNanosec: BigInt!
 }
 
-type ExecuteActsAct @entity{
+type ExecuteActsAct @entity {
   id: ID!
   sender: String!
   actions: [ActionAct!]!
+  timestampNanosec: BigInt!
 }
-type SwapAct @entity{
+type SwapAct @entity {
   id: ID!
   sender: String!
   actions: [ActionAct!]!
   referral_id: String
+  timestampNanosec: BigInt!
 }
-type AddLiquidityAct @entity{
+type AddLiquidityAct @entity {
   id: ID!
   sender: String!
   pool_id: BigInt!
   amounts: [BigInt!]!
   min_amounts: [BigInt!]
+  timestampNanosec: BigInt!
 }
-type RemoveLiquidityAct @entity{
+type RemoveLiquidityAct @entity {
   id: ID!
   sender: String!
   pool_id: BigInt!
   shares: BigInt!
   min_amounts: [BigInt!]!
+  timestampNanosec: BigInt!
 }
 
-type MftRegisterAct @entity{
+type MftRegisterAct @entity {
   id: ID!
   sender: String!
   token_id: String!
   account_id: String!
+  timestampNanosec: BigInt!
 }
-type MftTransferAct @entity{
+type MftTransferAct @entity {
   id: ID!
   sender: String!
   token_id: String!
   receiver_id: String!
   amount: BigInt!
   memo: String
+  timestampNanosec: BigInt!
 }
-type MftTransferCallAct @entity{
+type MftTransferCallAct @entity {
   id: ID!
   sender: String!
   token_id: String!
@@ -96,21 +108,25 @@ type MftTransferCallAct @entity{
   amount: BigInt!
   memo: String
   msg: String!
+  timestampNanosec: BigInt!
 }
 
-type StorageDepositAct @entity{
+type StorageDepositAct @entity {
   id: ID!
   sender: String!
   account_id: String
   registration_only: Boolean
+  timestampNanosec: BigInt!
 }
-type StorageWithdrawAct @entity{
+type StorageWithdrawAct @entity {
   id: ID!
   sender: String!
   amount: BigInt
+  timestampNanosec: BigInt!
 }
-type StorageUnregisterAct @entity{
+type StorageUnregisterAct @entity {
   id: ID!
   sender: String!
   force: Boolean
+  timestampNanosec: BigInt!
 }

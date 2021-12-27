@@ -60,62 +60,62 @@ function handleAction(
   event.save();
 
   if (call.methodName == "register_tokens") {
-    register_tokens(action, receipt);
+    register_tokens(action, receipt, blockHeader.timestampNanosec);
     return;
   }
   if (call.methodName == "unregister_tokens") {
-    unregister_tokens(action, receipt);
+    unregister_tokens(action, receipt, blockHeader.timestampNanosec);
     return;
   }
   if (call.methodName == "withdraw") {
-    withdraw(action, receipt);
+    withdraw(action, receipt, blockHeader.timestampNanosec);
     return;
   }
 
   if (call.methodName == "add_simple_pool") {
-    add_simple_pool(action, receipt);
+    add_simple_pool(action, receipt, blockHeader.timestampNanosec);
     return;
   }
   if (call.methodName == "execute_actions") {
-    execute_actions(action, receipt);
+    execute_actions(action, receipt, blockHeader.timestampNanosec);
     return;
   }
   if (call.methodName == "swap") {
-    swap(action, receipt);
+    swap(action, receipt, blockHeader.timestampNanosec);
     return;
   }
   if (call.methodName == "add_liquidity") {
-    add_liquidity(action, receipt);
+    add_liquidity(action, receipt, blockHeader.timestampNanosec);
     return;
   }
   if (call.methodName == "remove_liquidity") {
-    remove_liquidity(action, receipt);
+    remove_liquidity(action, receipt, blockHeader.timestampNanosec);
     return;
   }
 
   if (call.methodName == "mft_register") {
-    mft_register(action, receipt);
+    mft_register(action, receipt, blockHeader.timestampNanosec);
     return;
   }
   if (call.methodName == "mft_transfer") {
-    mft_transfer(action, receipt);
+    mft_transfer(action, receipt, blockHeader.timestampNanosec);
     return;
   }
   if (call.methodName == "mft_transfer_call") {
-    mft_transfer_call(action, receipt);
+    mft_transfer_call(action, receipt, blockHeader.timestampNanosec);
     return;
   }
 
   if (call.methodName == "storage_deposit") {
-    storage_deposit(action, receipt);
+    storage_deposit(action, receipt, blockHeader.timestampNanosec);
     return;
   }
   if (call.methodName == "storage_withdraw") {
-    storage_withdraw(action, receipt);
+    storage_withdraw(action, receipt, blockHeader.timestampNanosec);
     return;
   }
   if (call.methodName == "storage_unregister") {
-    storage_unregister(action, receipt);
+    storage_unregister(action, receipt, blockHeader.timestampNanosec);
     return;
   }
 }
@@ -128,7 +128,8 @@ function isset(obj: TypedMap<string, JSONValue>, key: string): boolean {
 
 function register_tokens(
   action: near.ActionValue,
-  receipt: near.ActionReceipt
+  receipt: near.ActionReceipt,
+  timestampNanosec: u64
 ): void {
   const act = new RegisterTokensAct(receipt.id.toHexString());
   const args = json.fromBytes(action.toFunctionCall().args).toObject();
@@ -137,12 +138,14 @@ function register_tokens(
     .get("token_ids")!
     .toArray()
     .map<string>((r: JSONValue) => r.toString());
+  act.timestampNanosec = BigInt.fromU64(timestampNanosec);
   act.save();
 }
 
 function unregister_tokens(
   action: near.ActionValue,
-  receipt: near.ActionReceipt
+  receipt: near.ActionReceipt,
+  timestampNanosec: u64
 ): void {
   const act = new UnregisterTokensAct(receipt.id.toHexString());
   const args = json.fromBytes(action.toFunctionCall().args).toObject();
@@ -151,10 +154,15 @@ function unregister_tokens(
     .get("token_ids")!
     .toArray()
     .map<string>((r: JSONValue) => r.toString());
+  act.timestampNanosec = BigInt.fromU64(timestampNanosec);
   act.save();
 }
 
-function withdraw(action: near.ActionValue, receipt: near.ActionReceipt): void {
+function withdraw(
+  action: near.ActionValue,
+  receipt: near.ActionReceipt,
+  timestampNanosec: u64
+): void {
   const act = new WithdrawAct(receipt.id.toHexString());
   const args = json.fromBytes(action.toFunctionCall().args).toObject();
   act.sender = receipt.signerId;
@@ -163,12 +171,14 @@ function withdraw(action: near.ActionValue, receipt: near.ActionReceipt): void {
   if (isset(args, "unregister")) {
     act.unregister = args.get("unregister")!.toBool();
   }
+  act.timestampNanosec = BigInt.fromU64(timestampNanosec);
   act.save();
 }
 
 function add_simple_pool(
   action: near.ActionValue,
-  receipt: near.ActionReceipt
+  receipt: near.ActionReceipt,
+  timestampNanosec: u64
 ): void {
   const act = new AddSimplePoolAct(receipt.id.toHexString());
   const args = json.fromBytes(action.toFunctionCall().args).toObject();
@@ -178,12 +188,14 @@ function add_simple_pool(
     .toArray()
     .map<string>((r) => r.toString());
   act.fee = BigInt.fromU64(args.get("fee")!.toU64());
+  act.timestampNanosec = BigInt.fromU64(timestampNanosec);
   act.save();
 }
 
 function execute_actions(
   action: near.ActionValue,
-  receipt: near.ActionReceipt
+  receipt: near.ActionReceipt,
+  timestampNanosec: u64
 ): void {
   const args = json.fromBytes(action.toFunctionCall().args).toObject();
   const baseId = receipt.id.toHexString();
@@ -199,6 +211,7 @@ function execute_actions(
     }
     a.token_out = o.get("token_out")!.toString();
     a.min_amount_out = BigInt.fromString(o.get("min_amount_out")!.toString());
+    a.timestampNanosec = BigInt.fromU64(timestampNanosec);
     a.save();
 
     actions[i] = a.id;
@@ -206,10 +219,15 @@ function execute_actions(
   const act = new ExecuteActsAct(receipt.id.toHexString());
   act.sender = receipt.signerId;
   act.actions = actions;
+  act.timestampNanosec = BigInt.fromU64(timestampNanosec);
   act.save();
 }
 
-function swap(action: near.ActionValue, receipt: near.ActionReceipt): void {
+function swap(
+  action: near.ActionValue,
+  receipt: near.ActionReceipt,
+  timestampNanosec: u64
+): void {
   const args = json.fromBytes(action.toFunctionCall().args).toObject();
   const baseId = receipt.id.toHexString();
   const acts = args.get("actions")!.toArray();
@@ -226,6 +244,7 @@ function swap(action: near.ActionValue, receipt: near.ActionReceipt): void {
     }
     a.token_out = o.get("token_out")!.toString();
     a.min_amount_out = BigInt.fromString(o.get("min_amount_out")!.toString());
+    a.timestampNanosec = BigInt.fromU64(timestampNanosec);
     a.save();
 
     actions[i] = a.id;
@@ -237,12 +256,14 @@ function swap(action: near.ActionValue, receipt: near.ActionReceipt): void {
   if (isset(args, "referral_id")) {
     act.referral_id = args.get("referral_id")!.toString();
   }
+  act.timestampNanosec = BigInt.fromU64(timestampNanosec);
   act.save();
 }
 
 function add_liquidity(
   action: near.ActionValue,
-  receipt: near.ActionReceipt
+  receipt: near.ActionReceipt,
+  timestampNanosec: u64
 ): void {
   const args = json.fromBytes(action.toFunctionCall().args).toObject();
   const act = new AddLiquidityAct(receipt.id.toHexString());
@@ -262,12 +283,14 @@ function add_liquidity(
         return BigInt.fromString(r.toString());
       });
   }
+  act.timestampNanosec = BigInt.fromU64(timestampNanosec);
   act.save();
 }
 
 function remove_liquidity(
   action: near.ActionValue,
-  receipt: near.ActionReceipt
+  receipt: near.ActionReceipt,
+  timestampNanosec: u64
 ): void {
   const args = json.fromBytes(action.toFunctionCall().args).toObject();
   const act = new RemoveLiquidityAct(receipt.id.toHexString());
@@ -280,24 +303,28 @@ function remove_liquidity(
     .map<BigInt>((r) => {
       return BigInt.fromString(r.toString());
     });
+  act.timestampNanosec = BigInt.fromU64(timestampNanosec);
   act.save();
 }
 
 function mft_register(
   action: near.ActionValue,
-  receipt: near.ActionReceipt
+  receipt: near.ActionReceipt,
+  timestampNanosec: u64
 ): void {
   const args = json.fromBytes(action.toFunctionCall().args).toObject();
   const act = new MftRegisterAct(receipt.id.toHexString());
   act.sender = receipt.signerId;
   act.token_id = args.get("token_id")!.toString();
   act.account_id = args.get("account_id")!.toString();
+  act.timestampNanosec = BigInt.fromU64(timestampNanosec);
   act.save();
 }
 
 function mft_transfer(
   action: near.ActionValue,
-  receipt: near.ActionReceipt
+  receipt: near.ActionReceipt,
+  timestampNanosec: u64
 ): void {
   const args = json.fromBytes(action.toFunctionCall().args).toObject();
   const act = new MftTransferAct(receipt.id.toHexString());
@@ -308,12 +335,14 @@ function mft_transfer(
   if (isset(args, "memo")) {
     act.memo = args.get("memo")!.toString();
   }
+  act.timestampNanosec = BigInt.fromU64(timestampNanosec);
   act.save();
 }
 
 function mft_transfer_call(
   action: near.ActionValue,
-  receipt: near.ActionReceipt
+  receipt: near.ActionReceipt,
+  timestampNanosec: u64
 ): void {
   const args = json.fromBytes(action.toFunctionCall().args).toObject();
   const act = new MftTransferCallAct(receipt.id.toHexString());
@@ -325,12 +354,14 @@ function mft_transfer_call(
     act.memo = args.get("memo")!.toString();
   }
   act.msg = args.get("msg")!.toString();
+  act.timestampNanosec = BigInt.fromU64(timestampNanosec);
   act.save();
 }
 
 function storage_deposit(
   action: near.ActionValue,
-  receipt: near.ActionReceipt
+  receipt: near.ActionReceipt,
+  timestampNanosec: u64
 ): void {
   const args = json.fromBytes(action.toFunctionCall().args).toObject();
   const act = new StorageDepositAct(receipt.id.toHexString());
@@ -341,12 +372,14 @@ function storage_deposit(
   if (isset(args, "registration_only")) {
     act.registration_only = args.get("registration_only")!.toBool();
   }
+  act.timestampNanosec = BigInt.fromU64(timestampNanosec);
   act.save();
 }
 
 function storage_withdraw(
   action: near.ActionValue,
-  receipt: near.ActionReceipt
+  receipt: near.ActionReceipt,
+  timestampNanosec: u64
 ): void {
   const args = json.fromBytes(action.toFunctionCall().args).toObject();
   const act = new StorageWithdrawAct(receipt.id.toHexString());
@@ -354,12 +387,14 @@ function storage_withdraw(
   if (isset(args, "amount")) {
     act.amount = BigInt.fromString(args.get("amount")!.toString());
   }
+  act.timestampNanosec = BigInt.fromU64(timestampNanosec);
   act.save();
 }
 
 function storage_unregister(
   action: near.ActionValue,
-  receipt: near.ActionReceipt
+  receipt: near.ActionReceipt,
+  timestampNanosec: u64
 ): void {
   const args = json.fromBytes(action.toFunctionCall().args).toObject();
   const act = new StorageUnregisterAct(receipt.id.toHexString());
@@ -367,5 +402,6 @@ function storage_unregister(
   if (isset(args, "force")) {
     act.force = args.get("force")!.toBool();
   }
+  act.timestampNanosec = BigInt.fromU64(timestampNanosec);
   act.save();
 }
