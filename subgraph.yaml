@@ -9,7 +9,8 @@ dataSources:
     network: near-mainnet
     source:
       account: ref-finance.near
-      startBlock: 45195764
+      # startBlock: 45195764
+      startBlock: 55513067
     mapping:
       apiVersion: 0.0.5
       language: wasm/assemblyscript

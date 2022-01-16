@@ -57,6 +57,7 @@ function handleAction(
 
   const event = new BlockAct(blockHeader.hash.toHexString());
   event.methodName = call.methodName;
+  event.sender = receipt.signerId;
   event.save();
 
   if (call.methodName == "register_tokens") {

@@ -3,6 +3,8 @@
         "assemblyscript",
         "graphprotocol",
         "isset",
-        "Nanosec"
+        "jsoneditor",
+        "Nanosec",
+        "prismjs"
     ]
 }

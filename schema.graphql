@@ -9,6 +9,7 @@ type BlockEvent @entity {
 
 type BlockAct @entity {
   id: ID!
+  sender: String!
   methodName: String!
   timestampNanosec: BigInt!
 }
@@ -46,6 +47,7 @@ type AddSimplePoolAct @entity {
 
 type ActionAct @entity {
   id: ID!
+  sender: String!
   pool_id: BigInt
   token_in: String!
   amount_in: BigInt

@@ -24,15 +24,31 @@ const client = new ApolloClient({
 function App() {
   const [ql, setQl] = useState(`
 query {
-  blockEvents(first: 5) {
+  # 列出给定用户调用的方法
+  blockActs(first: 5, where: { sender: "cryptoviking.near" }) {
     id
     sender
-    number
-    hash
-  }
-  blockActs(first: 5) {
-    id
     methodName
+    timestampNanosec
+  }
+
+  # 列出给定用户添加的 Pools
+  addLiquidityActs(first: 5, where: { sender: "cryptoviking.near" }) {
+    id
+    sender
+    pool_id
+    min_amounts
+    timestampNanosec
+  }
+
+  # 列出给定用户移除的 Pools
+  removeLiquidityActs(first: 5, where: { sender: "cryptoviking.near" }) {
+    id
+    sender
+    pool_id
+    shares
+    min_amounts
+    timestampNanosec
   }
 }
   `);
